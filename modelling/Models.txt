@@ -1,0 +1,34 @@
+affine model:
+    x(n + 1) = r * x(n) + a
+    x(n + 1) - x(n) = (r - 1) * x(n) + a
+    exponential model: a = 0
+
+x(0) = b; r = r; a = a
+
+x(1) = rb + a
+x(2) = r(rb + a) + a = r^2b + a + ra
+x(3) = r(r(rb + a) + a) + a = br^3 + ar^2 + ar^1 + ar^0
+x(n) = br^n + a(sum from 0 to n-1 of r^i) = br^n + a(r^n - 1)/(r - 1)  # geometric series
+
+
+
+logistic model:
+	x(n + 1) = r(x(n)) * x(n) + x(n)
+	x(n + 1) - x(n) = r(x(n)) * x(n)
+		where r(x) is a line passing through (0, R) and (K, 0).
+		(r(x) is the growth function, 
+			should have max growth when no-one is there,
+			and should have no growth when carrying capacity is hit)
+		R is max growth
+		K is carrying capacity
+		r(x) = -(R/K)x + R
+	linear growth logistic model:
+		x(n + 1) = R * x(n) * (1 - x(n)/K) + x(n)
+		x(n + 1) - x(n) = R * x(n) * (1 - x(n)/K)
+	if R > 2 or R < 0, K is no longer a stable fixed point
+	if R < 0 or R > -2, 0 is a stable fixed point
+
+
+
+
+
