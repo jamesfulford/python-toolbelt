@@ -1,0 +1,6 @@
+[
+    {"args": [1], "expected": 1},
+    {"args": 2, "expected": 4, "should_pass": true},
+    {"args": [3], "expected": 10, "should_pass": false},
+    {"args": [4], "kwargs": {"a": 1}, "expected": 17, "should_pass": true}
+]
