@@ -30,8 +30,8 @@ def unordered_equal(a, b):
 
 
 def _silence():
-        # purposefully does nothing
-        pass
+    # purposefully does nothing
+    pass
 
 # todo: make set_up and tear_down work usefully? Pass state object???
 def check(tests, post_transform=lambda x: x, comparer=is_equal,
