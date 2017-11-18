@@ -1,7 +1,6 @@
-
 # tools.py
-import logging
-logger = logging.getLogger(__name__)
+
+from inspect import getargspec
 
 
 #
@@ -145,7 +144,6 @@ def pass_through(value, mapping, warn=False, **kwargs):
         except TypeError:
             msg = "pass_through: TypeError (unhashable type?)" \
                 ": cannot get {} from {}".format(value, mapping)
-            logger.debug(msg)
             print msg
             # will return value later
         except KeyError:
@@ -157,7 +155,6 @@ def pass_through(value, mapping, warn=False, **kwargs):
         except Exception as e:  # calling the function failed
             msg = "pass_through: {}({}) failed\n".format(
                 value, mapping.__name__) + str(e)
-            logger.debug(msg)
             print msg
 
     # Mapping failed - return input
@@ -203,3 +200,13 @@ def check(data, form, *context):
                 .format(form.__name__, data, output)
             return False
         return True
+
+
+def prepare_argument(fn, contexts):
+    """
+    Passes only the arguments fn expects
+        from contexts dicitonary
+    """
+    args, varargs, varkwargs, defaults = getargspec(fn)
+    arguments = map(lambda a: contexts.get(a, None), args)
+    return arguments

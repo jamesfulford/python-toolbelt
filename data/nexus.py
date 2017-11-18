@@ -54,7 +54,7 @@ def _retrieve(data, form, *args):
             except Exception as e:
                 #
                 # accessing failed. Log message
-                # and return None so
+                # and return None so it gets filtered out.
                 #
                 msg = "({}, {}): {}\nSkipping {}.".format(
                     *(key, accessor.__name__, str(e), data)

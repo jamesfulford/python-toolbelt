@@ -26,13 +26,58 @@ from tools import ITERABLES
 #
 
 
-#
-# TODO: make these rules representable with __repr__
-# Decorator? Needs to know all args, kwargs
-# __str__ = __repr__  for error messages
-#
+class ReadableFunction(object):
+    """
+    Decorator for functions that return functions
+
+    When wrapped function is called, returns a simple_validator
+    with the arguments appended to the name.
+    """
+    def __init__(self, fn, name=None):
+        self.fn = fn
+        if name:
+            self.name = name
+        else:
+            self.name = fn.__name__
+
+    def __str__(self):
+        return self.name
+
+    __repr__ = __str__
+
+    def __call__(self, *args, **kwargs):
+        #
+        # Todo: only pass in arguments self.fn is expecting
+        # (make it so they don't have to say *contexts)
+        #
+        result = self.fn(*args, **kwargs)
+
+        # if a function is returned,
+        # make it a validator
+        # with the name describing how it was made.
+        if hasattr(result, "__call__"):
+            name = self.name + "("
+            if args or kwargs:
+                arguments = []
+                if args:
+                    typetype = type(type(1))
+                    args = map(lambda x: x.__name__ if isinstance(x, typetype)
+                               else repr(x), args)
+                    arguments.extend(args)
+                if kwargs:
+                    arguments.extend(map(lambda kv: str(kv[0]) + "=" +
+                                         repr(kv[1]), kwargs.items()))
+                name += ", ".join(arguments)
+            name += ")"
+            # print name
+            return ReadableFunction(result, name=name)
+        return result
 
 
+validator = ReadableFunction
+
+
+@validator
 def should(*args):
     """
     Aggregates multiple tests in an 'AND' fashion (all must pass)
@@ -62,6 +107,7 @@ def should(*args):
     return _parse_tests(args, top_is_and=True)
 
 
+@validator
 def at_least(*args):
     """
     Aggregates multiple tests in an 'OR' fashion (1 must pass)
@@ -91,6 +137,7 @@ def at_least(*args):
     return _parse_tests(args, top_is_and=False)
 
 
+@validator
 def case(*args):
     #
     # TODO: Make it like at_least, but on an XOR basis
@@ -150,16 +197,19 @@ def _parse_tests(args, top_is_and=True):
 #
 
 
+@validator
 def be(*goods):
     def is_good(data, *context):
         return data in goods
     return is_good
 
 
+@validator
 def be_in(good_list, *context):
     return be(*good_list)
 
 
+@validator
 def be_a(*good_types):
     def good_type_or_not(data, *context):
         return isinstance(data, tuple(good_types))
@@ -169,16 +219,19 @@ def be_a(*good_types):
 be_an = be_a  # makes my english feel better
 
 
+@validator
 def be_truthful(data, *context):
     return bool(data)
 
 
+@validator
 def be_good(good_test):
     def is_test_good(data, *context):
         return good_test(data, *context)
     return is_test_good
 
 
+@validator
 def have(key, *tests):
     """
     Returns if key successfully accessed from data.
@@ -220,7 +273,7 @@ def have(key, *tests):
 # TODO: convert these to second context validators
 #
 
-
+@validator
 def _reference(key, min_finds, max_finds=None, flatten=True):
     """
     Returns refer, which accesses key from each item
@@ -250,6 +303,7 @@ def _reference(key, min_finds, max_finds=None, flatten=True):
     return refer
 
 
+@validator
 def be_unique(key):
     """
     Returns True if value shows up only once in the list
@@ -260,6 +314,7 @@ def be_unique(key):
     return _reference(key, 1, 1)
 
 
+@validator
 def point_to(key):
     """
     Returns True if value shows up at least once in the list
@@ -277,6 +332,7 @@ def point_to(key):
 #
 # TODO: Specify test(s) to run on foreign referred item
 #
+@validator
 def foreign(nexi_name, key, *tests):
     """
     Returns function which checks uniqueness on third context
@@ -299,3 +355,13 @@ if __name__ == "__main__":
             have("liberty", be_an(int)),
         ]
     )({"liberty": 22, "death": False})
+
+    @validator
+    def beans(beans, **kwargs):
+        def be_a_bean(data, *context):
+            return data in beans
+        return be_a_bean
+
+    print should(be_a(str),
+                 should(be_in(["Bean"]))
+                 )
