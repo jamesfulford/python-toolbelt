@@ -1,12 +1,10 @@
-import logging
 from tools import flatten_list, pass_through, resolve_keypath
+from tools import ReadableFunction as accessor
 from tools import DICTIONARIES
 from tools import ITERABLES
 
 
-logger = logging.getLogger(__name__)
-
-
+@accessor
 def access(key, default=None, flatten=None,
            mapping=None, get_attr=None,
            warn=False, split="/", **kwargs):
@@ -80,6 +78,7 @@ def access(key, default=None, flatten=None,
     return get_deep_key_from_dictionary
 
 
+@accessor
 def try_deeper_key(key, deep_key, default=None, **kwargs):
     """
     Returns getter which tries to access from parent dictionary.
@@ -100,6 +99,7 @@ def try_deeper_key(key, deep_key, default=None, **kwargs):
     return try_access
 
 
+@accessor
 def always(value):
     """Always returns the same *value* irregardless of inputs"""
     def always_return(data, *args):

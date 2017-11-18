@@ -186,13 +186,13 @@ class Nexus(object):
             map(lambda v: stringify_cell(v).replace(delimiter, "|"), r)
         ), output)
 
-    def validate(self, template, *contexts):
+    def validate(self, template, **contexts):
         """
         Using each template, which has a similar structure to each entry,
         will apply each leaf function on each entry in self.entries.
         """
 
-        parting = partition(lambda e: check(e, template, *contexts),
+        parting = partition(lambda e: check(e, template, **contexts),
                             self.entries)
 
         #
@@ -238,13 +238,17 @@ if __name__ == "__main__":
         "y_coord": access(["y"], 0)
     }
 
-    n = Nexus({
+    declaration = {
         "id": be_an(int),
         "x_coord": be_an(int),
         "y_coord": be_an(int)
-    })
+    }
+
+    print unpackers
+    n = Nexus(declaration)
+
     n.add(entries, unpackers)
-    n.validate({"id": unique("id")}, n.entries)
+    n.validate({"id": be_unique("id")}, entries=n.entries)
     print "Entries", len(n.entries)
     print "Rejects", len(n.rejects)
     print "Packed ", len(n.packed)

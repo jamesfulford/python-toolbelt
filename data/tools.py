@@ -161,43 +161,51 @@ def pass_through(value, mapping, warn=False, **kwargs):
     return value
 
 
-def check(data, form, *context):
+def check(data, template, **context):
     """
-    Checks data complies with tests specified in form.
+    Checks data complies with tests specified in template.
     If test fails, prints value returned and returns False
         continues to evaluate tests
     Is part of validation.
     """
 
-    if isinstance(form, DICTIONARIES):
+    if isinstance(template, DICTIONARIES):
         # delegate to all key-value pairs
         results = []
-        for key, value in form.items():
-            result = check(data[key], value, *context)
+        for key, value in template.items():
+            result = check(data[key], value, **context)
             results.append(result)
             if not result:
                 break
         return reduce(lambda p, q: bool(p) and bool(q), results)
-    elif isinstance(form, ITERABLES):
+    elif isinstance(template, ITERABLES):
         # delegate to all items
         results = []
         for item in data:  # data should be a list
-            result = check(item, form[0], *context)
+            result = check(item, template[0], **context)
             results.append(result)
             if not result:
                 break
         return reduce(lambda p, q: bool(p) and bool(q), results)
     else:
-        # Leaf of form
+        # Leaf of template
+        contexts = {"data": data}
+        contexts.update(context)
+
+        test = template
+        if isinstance(test, ReadableFunction):
+            test = test._resolve_to_py_function()
         try:
             # Call the validator on this piece of data
-            output = form(data, *context)
+            arguments = prepare_argument(test, contexts)
+            output = test(*arguments)
         except Exception as e:
             output = str(e)
+            raise
 
         if output is not True:
             print "{}({}) failed (output: {})" \
-                .format(form.__name__, data, output)
+                .format(template.__name__, data, output)
             return False
         return True
 
@@ -210,3 +218,76 @@ def prepare_argument(fn, contexts):
     args, varargs, varkwargs, defaults = getargspec(fn)
     arguments = map(lambda a: contexts.get(a, None), args)
     return arguments
+
+
+class ReadableFunction(object):
+    """
+    Decorator for functions.
+
+    Acts like the function, with an eval-able .name attribute.
+    If given function returns a callable when called:
+        wraps callable with ReadableFunction,
+        and fills in the .name attribute to hold args used in call
+    Else, just returns the value.
+
+    __str__ or __repr__ will access .name.
+
+    >>> @ReadableFunction
+    ... def sample(a, b, c=42):
+    ...     def inner_func():
+    ...         return a + b + c
+    ...     return inner_func
+
+    >>> str(sample(1, 42, c=73))
+    'sample(1, 42, c=73)'
+    """
+    def __init__(self, fn, name=None):
+        self.fn = fn
+        if name:
+            self.name = name
+        else:
+            self.name = fn.__name__
+        self.__name__ = self.name
+
+    def __str__(self):
+        return self.name
+
+    __repr__ = __str__
+
+    def _resolve_to_py_function(self):
+        """
+        So the inspect module can work, call this to get the
+            actually defined python function
+        """
+        if isinstance(self.fn, ReadableFunction):
+            return self.fn._resolve_to_py_function()
+        else:
+            return self.fn
+
+    def __call__(self, *args, **kwargs):
+        #
+        # Todo: only pass in arguments self.fn is expecting
+        # (make it so they don't have to say *contexts)
+        #
+        result = self.fn(*args, **kwargs)
+
+        # if a function is returned,
+        # make it a validator
+        # with the name describing how it was made.
+        if hasattr(result, "__call__"):
+            name = self.name + "("
+            if args or kwargs:
+                arguments = []
+                if args:
+                    typetype = type(type(1))
+                    args = map(lambda x: x.__name__ if isinstance(x, typetype)
+                               else repr(x), args)
+                    arguments.extend(args)
+                if kwargs:
+                    arguments.extend(map(lambda kv: str(kv[0]) + "=" +
+                                         repr(kv[1]), kwargs.items()))
+                name += ", ".join(arguments)
+            name += ")"
+            # print name
+            return ReadableFunction(result, name=name)
+        return result

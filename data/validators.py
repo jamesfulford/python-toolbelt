@@ -8,73 +8,20 @@
 
 from accessors import access
 from tools import ITERABLES
+from tools import ReadableFunction as validator
 
 #
 # CONTEXT DEFINITIONS
 #
-# No context: validating just the value present
-#       (useful for datatype checks)
-#
-# First context: validating against other fields in entry
+# 'record' context: validating against other fields in entry
 #       (useful for one field less than another)
 #
-# Second context: validating against other entries in list
+# 'entries' context: validating against other entries in list
 #       (useful for graph references and uniqueness)
 #
-# Third context: validating against entries in named lists (dictionary)
+# 'collection' context: validating against entries in named lists (dictionary)
 #       (useful for foreign references)
 #
-
-
-class ReadableFunction(object):
-    """
-    Decorator for functions that return functions
-
-    When wrapped function is called, returns a simple_validator
-    with the arguments appended to the name.
-    """
-    def __init__(self, fn, name=None):
-        self.fn = fn
-        if name:
-            self.name = name
-        else:
-            self.name = fn.__name__
-
-    def __str__(self):
-        return self.name
-
-    __repr__ = __str__
-
-    def __call__(self, *args, **kwargs):
-        #
-        # Todo: only pass in arguments self.fn is expecting
-        # (make it so they don't have to say *contexts)
-        #
-        result = self.fn(*args, **kwargs)
-
-        # if a function is returned,
-        # make it a validator
-        # with the name describing how it was made.
-        if hasattr(result, "__call__"):
-            name = self.name + "("
-            if args or kwargs:
-                arguments = []
-                if args:
-                    typetype = type(type(1))
-                    args = map(lambda x: x.__name__ if isinstance(x, typetype)
-                               else repr(x), args)
-                    arguments.extend(args)
-                if kwargs:
-                    arguments.extend(map(lambda kv: str(kv[0]) + "=" +
-                                         repr(kv[1]), kwargs.items()))
-                name += ", ".join(arguments)
-            name += ")"
-            # print name
-            return ReadableFunction(result, name=name)
-        return result
-
-
-validator = ReadableFunction
 
 
 @validator
@@ -152,7 +99,7 @@ def _parse_tests(args, top_is_and=True):
     # i.e. need at least 2 tests to pass in order for this to pass
     #
 
-    def check_that(data, *context):
+    def check_that(data):
 
         def check_and(arg, depth=0):
             if isinstance(arg, ITERABLES):
@@ -199,19 +146,19 @@ def _parse_tests(args, top_is_and=True):
 
 @validator
 def be(*goods):
-    def is_good(data, *context):
+    def is_good(data):
         return data in goods
     return is_good
 
 
 @validator
-def be_in(good_list, *context):
+def be_in(good_list):
     return be(*good_list)
 
 
 @validator
 def be_a(*good_types):
-    def good_type_or_not(data, *context):
+    def good_type_or_not(data):
         return isinstance(data, tuple(good_types))
     return good_type_or_not
 
@@ -220,14 +167,14 @@ be_an = be_a  # makes my english feel better
 
 
 @validator
-def be_truthful(data, *context):
+def be_truthful(data):
     return bool(data)
 
 
 @validator
 def be_good(good_test):
-    def is_test_good(data, *context):
-        return good_test(data, *context)
+    def is_test_good(data):
+        return good_test(data)
     return is_test_good
 
 
@@ -245,13 +192,13 @@ def have(key, *tests):
     """
     tests = should(*tests)
 
-    def try_access(data, *context):
+    def try_access(data, **context):
         try:
             result = access(key)(data)
         except Exception:
             return False
         else:  # make sure validation errors not caught
-            return tests(result, *context)
+            return tests(result, **context)
 
     return try_access
 
@@ -261,12 +208,12 @@ def have(key, *tests):
 #
 
 #
-# TODO: Add first context validators
+# TODO: Add 'entry' context validators
 #
 
 
 #
-# Second Contextual Validators
+# 'entries' Contextual Validators
 #
 
 #
@@ -287,9 +234,9 @@ def _reference(key, min_finds, max_finds=None, flatten=True):
     If accessed value is a list, looks for datavalue in list
         (List is flattened by default)
     """
-    def refer(data, me, ls, *args):
+    def refer(data, entries):
         finds = 0
-        for item in ls:
+        for item in entries:
             acc = access(key, flatten=flatten)(item)
             if isinstance(acc, ITERABLES):
                 result = data in acc
@@ -338,8 +285,9 @@ def foreign(nexi_name, key, *tests):
     Returns function which checks uniqueness on third context
     """
     # test = should(*tests) if tests else be_unique
-    def foreign_reference(data, me, ls, nexi, *contexts):
-        return be_unique(key)(data, me, nexi[nexi_name], nexi, *contexts)
+    # ^ may have to prepare_argument
+    def foreign_reference(data, me, ls, nexi):
+        return be_unique(key)(data, nexi[nexi_name])
     return foreign_reference
 
 
