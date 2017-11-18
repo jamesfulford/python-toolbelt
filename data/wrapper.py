@@ -5,7 +5,7 @@ from accessors import access
 from tools import ITERABLES, DICTIONARIES
 
 
-class DataWrapper(object):
+class Wrapper(object):
     def __init__(self, data, splitter="__"):
         self.__data = data
         self.__splitter = splitter
@@ -45,7 +45,7 @@ class DataWrapper(object):
         result = access(name)(self.__data)
         if (isinstance(result, ITERABLES) or
                 isinstance(result, DICTIONARIES)):
-            return DataWrapper(result)
+            return Wrapper(result)
         return result
 
     def __str__(self):
@@ -57,5 +57,6 @@ class DataWrapper(object):
         )
 
 
-james = DataWrapper({"help": {"text": "Eat something tasty"}})
-print james.get_help__text()
+if __name__ == "__main__":
+    james = Wrapper({"help": {"text": "Eat something tasty"}})
+    print james.get_help__text()

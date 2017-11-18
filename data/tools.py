@@ -265,10 +265,6 @@ class ReadableFunction(object):
             return self.fn
 
     def __call__(self, *args, **kwargs):
-        #
-        # Todo: only pass in arguments self.fn is expecting
-        # (make it so they don't have to say *contexts)
-        #
         result = self.fn(*args, **kwargs)
 
         # if a function is returned,

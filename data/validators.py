@@ -99,7 +99,7 @@ def _parse_tests(args, top_is_and=True):
     # i.e. need at least 2 tests to pass in order for this to pass
     #
 
-    def check_that(data):
+    def check_that(data, **context):
 
         def check_and(arg, depth=0):
             if isinstance(arg, ITERABLES):
@@ -114,7 +114,7 @@ def _parse_tests(args, top_is_and=True):
                         return False
                 return True
             else:
-                return arg(data)
+                return arg(data, **context)
 
         def check_or(arg, depth=0):
             if isinstance(arg, ITERABLES):
