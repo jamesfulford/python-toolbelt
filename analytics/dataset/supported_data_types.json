@@ -1,0 +1,13 @@
+[
+    "bool", 
+    "complex", 
+    "date", 
+    "dict", 
+    "float", 
+    "geographic", 
+    "int", 
+    "list", 
+    "str", 
+    "tuple", 
+    "unicode"
+]
