@@ -42,9 +42,6 @@ def tupleAppend(tuple1, appendage):
     return tuple(result)
 
 
-target_coordinates = (43.0189086, -71.4860236)
-
-
 def surroundTarget(target_coordinates, radius_kilometers, numberSurroundPins):
     """
     Accurate only for small radius. Acts weird near poles Radius in miles.
