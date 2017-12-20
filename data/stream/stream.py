@@ -2,6 +2,7 @@
 
 import time
 import threading
+from copy import deepcopy
 
 import worker_types
 
@@ -45,7 +46,7 @@ class Trickle(object):
 
     def next(self):
         try:
-            ret = self.work[self.i]
+            ret = self.work[deepcopy(self.i)]
             self.i += 1
             return ret
         except KeyError:
@@ -205,36 +206,54 @@ class Stream(object):
 
         # print "After: {}".format(self.workline)
 
-        results = self.workline[-1].work  # return results queue
+        results = self.workline[-1].work  # TODO: yield from final workline
         return results
 
 
 if __name__ == "__main__":
     import requests
 
-    @worker_types.IOWorker
-    def square(x):
-        # SQUARING IS HARD! I'll make a server do it.
-        print "{}: SEND TO SQUARE SERVER".format(x)
-        url = "https://web-small-task-portfolio-semimajor.c9users.io/square/?val={}".format(x)
-        result = float(requests.get(url).text)
-        print "{}: RECEIVE FROM SQUARE SERVER".format(x)
-        return result
+    # @worker_types.IOWorker
+    # def square(x):
+    #     # SQUARING IS HARD! I'll make a server do it.
+    #     print "{}: SEND TO SQUARE SERVER".format(x)
+    #     url = "https://web-small-task-portfolio-semimajor.c9users.io/square/?val={}".format(x)
+    #     result = float(requests.get(url).text)
+    #     print "{}: RECEIVE FROM SQUARE SERVER".format(x)
+    #     return result
 
-    @worker_types.ThreadWorker
-    def roots(x):
-        print "{}: ROOTING {}".format(int(x ** .5), x)
-        return [x ** .5, x ** (1. / 3)]
+    # @worker_types.ThreadWorker
+    # def roots(x):
+    #     print "{}: ROOTING {}".format(int(x ** .5), x)
+    #     return [x ** .5, x ** (1. / 3)]
+
+    def modulate(d):
+        d["a"] = d["a"] % 5
+        time.sleep(2)
+        return d
+
+    def eat(d):
+        d["a"] = d["a"] + 10
+        return d
+
+    def tee(d):
+        print d
+        return d
 
     mystream = Stream(
-        square
+        lambda x: {"a": x}
     ).then(
-        roots
+        tee
     ).then(
-        int
+        eat
+    ).then(
+        tee
+    ).then(
+        modulate
+    ).then(
+        tee
     )
     print "This stream does {}preserve order.".format(
         "" if mystream.preserves_order else "not "
     )
-    print mystream(range(50))
-    print mystream.errors
+    print mystream(range(2))
