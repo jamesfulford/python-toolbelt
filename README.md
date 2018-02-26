@@ -25,9 +25,6 @@ Uses a wrapper library for the bufferapp.com API to assist in the automation of 
 
 ## Data Manipulation
 
-### [jamesfulford/Utility-Belt/data](https://github.com/jamesfulford/Utility-Belt/tree/master/data)
-Is a package for transforming and validating data in a more declarative fashion.
-
 ### [jamesfulford/Utility-Belt/analytics/dataset](https://github.com/jamesfulford/Utility-Belt/tree/master/analytics)dataset]
 Is a package for accessing particular values of datapoints and managing datasets.
 
