@@ -13,10 +13,10 @@ Is a package to use with nosetests to check that functions give expected outputs
 
 ## API Utilization
 
-### [jamesfulford/Utility-Belt/datasource/currencies.py](https://github.com/jamesfulford/Utility-Belt/tree/master)currencies.py]
+### [jamesfulford/Utility-Belt/datasource/currencies.py](https://github.com/jamesfulford/Utility-Belt/tree/master)
 Uses a free currency exchange rate API. Builds a class for each currency (dynamically) and adds them to the local variable scope.
 
-### [jamesfulford/Utility-Belt/visualization/googlemaps.py](https://github.com/jamesfulford/Utility-Belt/tree/master)visualization/googlemaps.py]
+### [jamesfulford/Utility-Belt/visualization/googlemaps.py](https://github.com/jamesfulford/Utility-Belt/tree/master)
 Uses the staticmap endpoint of maps.googleapis.com to make map images with pins.
 
 ### [jamesfulford/Utility-Belt/engage](https://github.com/jamesfulford/Utility-Belt/tree/master/engage)
@@ -25,7 +25,7 @@ Uses a wrapper library for the bufferapp.com API to assist in the automation of 
 
 ## Data Manipulation
 
-### [jamesfulford/Utility-Belt/analytics/dataset](https://github.com/jamesfulford/Utility-Belt/tree/master/analytics)dataset]
+### [jamesfulford/Utility-Belt/analytics/dataset](https://github.com/jamesfulford/Utility-Belt/tree/master/analytics)
 Is a package for accessing particular values of datapoints and managing datasets.
 
 ### [jamesfulford/Utility-Belt/engage](https://github.com/jamesfulford/Utility-Belt/tree/master/engage)
